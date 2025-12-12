@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Finder - Cards & Watches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .search-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .search-form input,
+        .search-form select {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .search-form input:focus,
+        .search-form select:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        .search-form button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .search-form button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .search-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f5576c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            padding: 30px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .card-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .card-item:hover {
+            border-color: #f5576c;
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.2);
+        }
+        
+        .card-item img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .card-item h3 {
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .card-item .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+        }
+        
+        .card-item .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .card-item .detail-item {
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+        
+        .card-item .detail-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.85em;
+        }
+        
+        .card-item .detail-value {
+            color: #333;
+            margin-top: 4px;
+        }
+        
+        .psa-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .psa-data {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .psa-data h4 {
+            color: #2196f3;
+            margin-bottom: 10px;
+        }
+        
+        .arbitrage-opportunity {
+            background: #c8e6c9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .arbitrage-opportunity h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #fcc;
+        }
+        
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #cfc;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 20px 40px 0;
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Arbitrage Finder</h1>
+            <p>Find undervalued cards and watches on eBay</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('cards')">🃏 PSA Cards</button>
+            <button class="tab" onclick="switchTab('watches')">⌚ Watches</button>
+        </div>
+        
+        <!-- Cards Tab -->
+        <div id="cardsTab" class="tab-content active">
+        <div class="search-section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3 style="margin-bottom: 15px; color: #f5576c;">🔍 Search Specific Cards</h3>
+                    <form class="search-form" id="searchForm" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                        <input type="text" id="searchQuery" placeholder="e.g., yugioh PSA 10 1st edition, pokemon PSA 10 base set" required>
+                        <select id="game">
+                            <option value="yugioh">Yu-Gi-Oh!</option>
+                            <option value="pokemon">Pokemon</option>
+                        </select>
+                        <input type="number" id="maxResults" value="20" min="1" max="100" placeholder="Max Results">
+                        <input type="text" id="year" placeholder="Year (optional)">
+                    </form>
+                    <div class="options" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="checkPSA" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #f5576c;">
+                            <label for="checkPSA" style="cursor: pointer; font-size: 14px; user-select: none;">Check PSA Data (No rate limit!)</label>
+                        </div>
+                        <div class="checkbox-group" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 15px; border-radius: 10px; border: 2px solid #2196f3; width: 100%; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);">
+                            <input type="checkbox" id="enableAI" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #2196f3;">
+                            <label for="enableAI" style="cursor: pointer; font-size: 15px; font-weight: bold; color: #1565c0; user-select: none; margin-left: 8px;">🤖 Enable AI Analysis (Auto-runs after search)</label>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button onclick="performSearch()" id="searchBtn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">🔍 Search eBay & Check PSA</button>
+                        <button onclick="triggerAIAnalysis()" id="aiAnalysisBtnTop" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: none;">🤖 Analyze with AI</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 15px; color: #f5576c;">🌐 Discover All Card Types</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Search across all PSA card types to discover available brands, categories, years, and games in the PSA database.
+                    </p>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cards per category:</label>
+                        <input type="number" id="maxPerCategory" value="10" min="1" max="50" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <button onclick="discoverCardTypes()" id="discoverBtn" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;">🌐 Discover All PSA Card Types</button>
+                </div>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 20px; border-radius: 12px; margin-top: 20px; border-left: 4px solid #2196f3;">
+                <h3 style="color: #2196f3; margin-bottom: 10px;">🔑 Automatic eBay Token Generation</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">
+                    Need an eBay OAuth token? We can generate one automatically! Just add your <strong>EBAY_CLIENT_ID</strong> and <strong>EBAY_CLIENT_SECRET</strong> to your <code>.env.local</code> file, then click below.
+                </p>
+                <button onclick="getEbayToken()" id="getTokenBtn" style="padding: 12px 24px; background: #2196f3; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">🔑 Get eBay OAuth Token Automatically</button>
+                <div id="tokenResult" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+        </div>
+        
+        <!-- Watches Tab -->
+        <div id="watchesTab" class="tab-content">
+        <div class="search-section">
+            <div>
+                <h3 style="margin-bottom: 15px; color: #f5576c;">⌚ Search Watches</h3>
+                <form class="search-form" id="watchSearchForm" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                    <input type="text" id="watchQuery" placeholder="e.g., Rolex Submariner, Omega Speedmaster" required>
+                    <input type="text" id="watchBrand" placeholder="Brand filter (optional)">
+                    <input type="number" id="watchMaxResults" value="20" min="1" max="100" placeholder="Max Results">
+                    <input type="number" id="watchMinSpread" value="10.0" min="0" max="100" step="0.1" placeholder="Min Spread %">
+                </form>
+                <div style="margin-top: 15px;">
+                    <button onclick="performWatchSearch()" id="watchSearchBtn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">🔍 Search Watches</button>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p id="loadingMessage">Searching eBay and checking PSA data...</p>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <div id="stats"></div>
+            <div id="errorMessage"></div>
+            <div id="aiAnalysisSection" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; margin: 20px 0; color: white; display: none;">
+                <h3 style="margin: 0 0 15px 0; color: white;">🤖 AI Analysis (Auto-Runs After Search)</h3>
+                <p style="margin: 0 0 15px 0; opacity: 0.9;">
+                    AI analysis runs automatically after search (if enabled). The AI uses <strong>moonshotai/kimi-k2-thinking</strong> to analyze market trends, card rarity, and pricing patterns to identify the best opportunities.
+                </p>
+                <button onclick="triggerAIAnalysis()" id="aiAnalysisBtn" style="padding: 12px 24px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    🤖 Re-Analyze with AI
+                </button>
+                <div id="aiAnalysisResult" style="margin-top: 15px; display: none;"></div>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentSearchResults = null; // Store current results for AI analysis
+        let currentTab = 'cards'; // Track current tab
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            // Clear results when switching tabs
+            document.getElementById('results').style.display = 'none';
+            currentSearchResults = null;
+        }
+        
+        async function performSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            const game = document.getElementById('game').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
+            const year = document.getElementById('year').value.trim() || null;
+            const checkPSA = document.getElementById('checkPSA').checked;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingMessage').textContent = 'Searching eBay and checking PSA data...';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('searchBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: query,
+                        game: game,
+                        max_results: maxResults,
+                        year: year,
+                        check_psa: checkPSA
+                    })
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('searchBtn').disabled = false;
+                
+                if (response.ok) {
+                    currentSearchResults = data; // Store for AI analysis
+                    displayResults(data);
+                    
+                    // Always show the AI analysis button after search (for manual triggering)
+                    const aiBtnTop = document.getElementById('aiAnalysisBtnTop');
+                    if (aiBtnTop && data.count > 0) {
+                        aiBtnTop.style.display = 'block';
+                    }
+                    
+                    // Show AI analysis section if there are undervalued cards
+                    const undervaluedCount = data.undervalued_count || 0;
+                    if (undervaluedCount > 0) {
+                        document.getElementById('aiAnalysisSection').style.display = 'block';
+                        
+                        // Automatically run AI analysis if enabled
+                        const enableAI = document.getElementById('enableAI').checked;
+                        if (enableAI) {
+                            console.log('🤖 Auto-running AI analysis after search...');
+                            // Small delay to let UI render first
+                            setTimeout(() => {
+                                triggerAIAnalysis();
+                            }, 500);
+                        }
+                    } else {
+                        document.getElementById('aiAnalysisSection').style.display = 'none';
+                    }
+                } else {
+                    showError(data.error || 'Search failed');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('searchBtn').disabled = false;
+                showError('Error: ' + error.message);
+            }
+        }
+        
+        function displayResults(data) {
+            const statsDiv = document.getElementById('stats');
+            const cardGrid = document.getElementById('cardGrid');
+            
+            const undervaluedCount = data.undervalued_count || 0;
+            const cardsWithEstimate = data.cards_with_estimate || 0;
+            const totalProfit = data.total_potential_profit || 0;
+            
+            // Display stats
+            statsDiv.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.count}</div>
+                        <div class="stat-label">Cards Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.psa_checked || 0}</div>
+                        <div class="stat-label">PSA Data Checked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${cardsWithEstimate}</div>
+                        <div class="stat-label">With PSA Estimates</div>
+                    </div>
+                    <div class="stat-card" style="background: ${undervaluedCount > 0 ? '#c8e6c9' : '#f5f5f5'}; border: 2px solid ${undervaluedCount > 0 ? '#4caf50' : '#ddd'};">
+                        <div class="stat-value" style="color: ${undervaluedCount > 0 ? '#2e7d32' : '#666'};">
+                            ${undervaluedCount}
+                        </div>
+                        <div class="stat-label">💰 Undervalued Cards</div>
+                    </div>
+                    ${totalProfit > 0 ? `
+                    <div class="stat-card" style="background: #fff3cd; border: 2px solid #ffc107;">
+                        <div class="stat-value" style="color: #856404;">
+                            $${totalProfit.toFixed(2)}
+                        </div>
+                        <div class="stat-label">Total Potential Profit</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Display cards
+            cardGrid.innerHTML = '';
+            
+            if (data.items.length === 0) {
+                cardGrid.innerHTML = '<div class="error">No cards found. Try a different search query.</div>';
+                document.getElementById('results').style.display = 'block';
+                return;
+            }
+            
+            data.items.forEach(item => {
+                const cardDiv = document.createElement('div');
+                
+                // Highlight undervalued cards
+                if (item.is_undervalued) {
+                    cardDiv.className = 'card-item';
+                    cardDiv.style.border = '3px solid #4caf50';
+                    cardDiv.style.background = 'linear-gradient(to bottom, #f1f8f4, #ffffff)';
+                    cardDiv.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
+                } else {
+                    cardDiv.className = 'card-item';
+                }
+                
+                const psaData = item.psa_data;
+                const hasPSA = psaData && psaData.grade;
+                const hasEstimate = item.psa_estimate && item.psa_estimate > 0;
+                const isUndervalued = item.is_undervalued;
+                const aiInsights = item.ai_insights || item.llm_insights || null;
+                
+                // PSA Price/Estimate Display - Show prominently at top
+                let psaPriceHtml = '';
+                if (hasEstimate) {
+                    psaPriceHtml = `
+                        <div style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);">
+                            <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 5px;">PSA Estimated Value</div>
+                            <div style="font-size: 1.8em; font-weight: bold;">$${item.psa_estimate.toFixed(2)}</div>
+                        </div>
+                    `;
+                } else if (item.cert_number) {
+                    psaPriceHtml = `
+                        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 2px solid #ffc107;">
+                            <div style="font-size: 0.9em; margin-bottom: 5px;">PSA Estimate</div>
+                            <div style="font-size: 1.2em; font-weight: bold;">Not Available</div>
+                            <div style="font-size: 0.8em; margin-top: 5px;">Cert #: ${item.cert_number}</div>
+                        </div>
+                    `;
+                }
+                
+                // Arbitrage opportunity section
+                let arbitrageHtml = '';
+                if (isUndervalued && hasEstimate) {
+                    arbitrageHtml = `
+                        <div class="arbitrage-opportunity">
+                            <h4>💰 UNDERVALUED - Arbitrage Opportunity!</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">PSA Estimate</div>
+                                    <div class="detail-value" style="color: #2e7d32; font-weight: bold; font-size: 1.1em;">
+                                        $${item.psa_estimate.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Your Cost</div>
+                                    <div class="detail-value" style="color: #666;">
+                                        $${item.total_cost.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div class="detail-item" style="background: #c8e6c9; grid-column: 1 / -1;">
+                                    <div class="detail-label">Potential Profit</div>
+                                    <div class="detail-value" style="color: #2e7d32; font-weight: bold; font-size: 1.2em;">
+                                        $${item.spread.toFixed(2)} (${item.spread_pct.toFixed(1)}%)
+                                    </div>
+                                </div>
+                            </div>
+                            ${aiInsights ? `
+                                <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #4caf50;">
+                                    <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px;">🤖 AI Analysis (Kimi K2 Thinking):</div>
+                                    <div style="color: #1b5e20; font-size: 0.95em; line-height: 1.5;">${aiInsights}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (hasEstimate && !isUndervalued) {
+                    arbitrageHtml = `
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #ffc107;">
+                            <h4 style="color: #856404; margin-bottom: 10px;">📊 PSA Estimate vs Your Cost</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">PSA Estimate</div>
+                                    <div class="detail-value">$${item.psa_estimate.toFixed(2)}</div>
+                                </div>
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Your Cost</div>
+                                    <div class="detail-value">$${item.total_cost.toFixed(2)}</div>
+                                </div>
+                                <div class="detail-item" style="background: #ffe0b2; grid-column: 1 / -1;">
+                                    <div class="detail-label">Difference</div>
+                                    <div class="detail-value" style="color: #e65100;">
+                                        $${(item.psa_estimate - item.total_cost).toFixed(2)} (${((item.psa_estimate - item.total_cost) / item.psa_estimate * 100).toFixed(1)}%)
+                                    </div>
+                                </div>
+                            </div>
+                            ${aiInsights ? `
+                                <div style="background: #fff9c4; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #ffc107;">
+                                    <div style="font-weight: bold; color: #856404; margin-bottom: 8px;">🤖 AI Analysis:</div>
+                                    <div style="color: #5d4037; font-size: 0.95em; line-height: 1.5;">${aiInsights}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (item.cert_number && !hasEstimate) {
+                    arbitrageHtml = `
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9em; color: #1976d2;">
+                            ℹ️ Cert # ${item.cert_number} - PSA estimate not available (may need to check manually)
+                        </div>
+                    `;
+                }
+                
+                // PSA Data Section - Show all available PSA data
+                let psaHtml = '';
+                if (hasPSA) {
+                    psaHtml = `
+                        <div class="psa-data">
+                            <h4>📋 PSA Certification Data</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                ${psaData.grade ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Grade</div><div class="detail-value" style="font-weight: bold; color: #2196f3;">PSA ${psaData.grade}</div></div>` : ''}
+                                ${psaData.year ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Year</div><div class="detail-value">${psaData.year}</div></div>` : ''}
+                                ${psaData.brand ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Brand</div><div class="detail-value">${psaData.brand}</div></div>` : ''}
+                                ${psaData.set_name ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Set Name</div><div class="detail-value">${psaData.set_name}</div></div>` : ''}
+                                ${psaData.player || psaData.subject ? `<div class="detail-item" style="background: #fff; grid-column: 1 / -1;"><div class="detail-label">Player/Subject</div><div class="detail-value">${psaData.player || psaData.subject}</div></div>` : ''}
+                                ${psaData.card_no ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Card #</div><div class="detail-value">${psaData.card_no}</div></div>` : ''}
+                                ${psaData.category ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Category</div><div class="detail-value">${psaData.category}</div></div>` : ''}
+                                ${psaData.total_population ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Total Population</div><div class="detail-value">${psaData.total_population}</div></div>` : ''}
+                                ${psaData.population_higher ? `<div class="detail-item" style="background: #fff;"><div class="detail-label">Population Higher</div><div class="detail-value">${psaData.population_higher}</div></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else if (item.cert_number) {
+                    psaHtml = `
+                        <div style="background: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9em; color: #856404;">
+                            ⚠️ Cert # ${item.cert_number} found but PSA data not available
+                        </div>
+                    `;
+                }
+                
+                // PSA Cert Number Display - Big and Prominent
+                let psaCertHtml = '';
+                if (item.cert_number) {
+                    psaCertHtml = `
+                        <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+                            <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">PSA Certification Number</div>
+                            <div style="font-size: 2em; font-weight: bold; font-family: 'Courier New', monospace; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                ${item.cert_number}
+                            </div>
+                            <div style="font-size: 0.8em; opacity: 0.8; margin-top: 8px;">
+                                <a href="https://www.psacard.com/cert/${item.cert_number}/psa" target="_blank" style="color: white; text-decoration: underline;">
+                                    View on PSA Website →
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                cardDiv.innerHTML = `
+                    ${isUndervalued ? '<div style="background: #4caf50; color: white; padding: 8px; border-radius: 8px 8px 0 0; font-weight: bold; text-align: center;">💰 UNDERVALUED</div>' : ''}
+                    ${item.image_url ? `<img src="${item.image_url}" alt="Card image" onerror="this.style.display='none'">` : ''}
+                    <h3>${item.title}</h3>
+                    
+                    ${psaCertHtml}
+                    
+                    ${psaPriceHtml}
+                    
+                    <div class="price" style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">eBay Total Cost:</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #f5576c;">$${item.total_cost.toFixed(2)}</div>
+                        <div style="font-size: 0.85em; color: #999; margin-top: 5px;">
+                            Price: $${item.price.toFixed(2)} + Shipping: $${item.shipping.toFixed(2)}${item.est_tax ? ` + Tax: $${item.est_tax.toFixed(2)}` : ''}
+                        </div>
+                    </div>
+                    
+                    ${hasPSA ? '<span class="psa-badge">✅ PSA Verified</span>' : ''}
+                    
+                    <div class="details" style="margin-top: 10px;">
+                        ${item.seller ? `<div class="detail-item"><div class="detail-label">Seller</div><div class="detail-value">${item.seller}</div></div>` : ''}
+                        ${item.condition ? `<div class="detail-item"><div class="detail-label">Condition</div><div class="detail-value">${item.condition}</div></div>` : ''}
+                    </div>
+                    
+                    ${arbitrageHtml}
+                    ${psaHtml}
+                    
+                    ${aiInsights && !isUndervalued && !hasEstimate ? `
+                        <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #2196f3;">
+                            <div style="font-weight: bold; color: #1976d2; margin-bottom: 8px;">🤖 AI Analysis:</div>
+                            <div style="color: #0d47a1; font-size: 0.95em; line-height: 1.5;">${aiInsights}</div>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="margin-top: 15px;">
+                        <a href="${item.url}" target="_blank" style="color: #f5576c; text-decoration: none; font-weight: bold;">View on eBay →</a>
+                    </div>
+                `;
+                
+                cardGrid.appendChild(cardDiv);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            document.getElementById('errorMessage').innerHTML = `<div class="error">❌ ${message}</div>`;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        // AI Analysis function
+        async function triggerAIAnalysis() {
+            if (!currentSearchResults || !currentSearchResults.items) {
+                alert('Please perform a search first');
+                return;
+            }
+            
+            // Update both buttons (top button and section button)
+            const btnTop = document.getElementById('aiAnalysisBtnTop');
+            const btn = document.getElementById('aiAnalysisBtn');
+            const resultDiv = document.getElementById('aiAnalysisResult');
+            
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.textContent = '🤖 Analyzing...';
+            }
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '🤖 Analyzing...';
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px;">Analyzing cards with AI using moonshotai/kimi-k2-thinking... This may take a moment.</div>';
+            
+            try {
+                const response = await fetch('/api/ai-analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        items: currentSearchResults.items
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px;">
+                            <h4 style="margin-top: 0; color: white;">✅ AI Analysis Complete</h4>
+                            <p style="margin: 10px 0;">${data.insights || 'Analysis completed successfully!'}</p>
+                            ${data.top_opportunities && data.top_opportunities.length > 0 ? `
+                                <div style="margin-top: 15px;">
+                                    <strong>Top Opportunities:</strong>
+                                    <ul style="margin: 10px 0; padding-left: 20px;">
+                                        ${data.top_opportunities.map(opp => `<li>${opp}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            ${data.total_profit ? `
+                                <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                    <strong>Total Potential Profit:</strong> $${data.total_profit.toFixed(2)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div style="background: rgba(255,0,0,0.2); padding: 15px; border-radius: 8px;">
+                            <strong>❌ Error:</strong> ${data.error || 'AI analysis failed'}
+                            <br><br>
+                            <small>Make sure OPENROUTER_API_KEY is set in your .env.local file</small>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="background: rgba(255,0,0,0.2); padding: 15px; border-radius: 8px;">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                if (btnTop) {
+                    btnTop.disabled = false;
+                    btnTop.textContent = '🤖 Analyze with AI';
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🤖 Re-Analyze with AI';
+                }
+            }
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('searchQuery').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Discover Card Types
+        async function discoverCardTypes() {
+            const maxPerCategory = parseInt(document.getElementById('maxPerCategory').value) || 10;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingMessage').textContent = 'Discovering card types across eBay and PSA database...';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('discoverBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/discover-card-types', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        max_per_category: maxPerCategory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('discoverBtn').disabled = false;
+                
+                if (response.ok) {
+                    displayCardTypes(data);
+                } else {
+                    showError(data.error || 'Discovery failed');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('discoverBtn').disabled = false;
+                showError('Error: ' + error.message);
+            }
+        }
+        
+        function displayCardTypes(data) {
+            const statsDiv = document.getElementById('stats');
+            const cardGrid = document.getElementById('cardGrid');
+            
+            // Display stats
+            statsDiv.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.total_cards_checked}</div>
+                        <div class="stat-label">Cards Checked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.cards_with_psa_data}</div>
+                        <div class="stat-label">PSA Data Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.unique_brands}</div>
+                        <div class="stat-label">Unique Brands</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.unique_categories}</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.unique_years}</div>
+                        <div class="stat-label">Years</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.stats.unique_games}</div>
+                        <div class="stat-label">Game Types</div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                        <h3 style="color: #f5576c; margin-bottom: 15px;">📦 Brands Found</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${data.brands.map(brand => `<span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em;">${brand}</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                        <h3 style="color: #f5576c; margin-bottom: 15px;">🎮 Game Types</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${data.games.map(game => `<span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em;">${game}</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                        <h3 style="color: #f5576c; margin-bottom: 15px;">📁 Categories</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${data.categories.map(cat => `<span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em;">${cat}</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
+                        <h3 style="color: #f5576c; margin-bottom: 15px;">📅 Years</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 200px; overflow-y: auto;">
+                            ${data.years.map(year => `<span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em;">${year}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                ${data.subjects.length > 0 ? `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h3 style="color: #f5576c; margin-bottom: 15px;">👤 Sample Subjects/Players (${data.subjects.length} shown)</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 150px; overflow-y: auto;">
+                        ${data.subjects.map(subject => `<span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em;">${subject}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            // Display sample cards
+            if (data.sample_cards && data.sample_cards.length > 0) {
+                cardGrid.innerHTML = '<h3 style="margin-bottom: 20px; color: #f5576c;">📋 Sample Cards Discovered</h3>';
+                
+                data.sample_cards.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card-item';
+                    
+                    const psaData = card.psa_data;
+                    
+                    cardDiv.innerHTML = `
+                        <h3>${card.title.substring(0, 60)}${card.title.length > 60 ? '...' : ''}</h3>
+                        <div class="price">$${card.price.toFixed(2)}</div>
+                        ${psaData.grade ? `<span class="psa-badge">PSA ${psaData.grade}</span>` : ''}
+                        <div class="psa-data">
+                            <div class="details">
+                                ${psaData.brand ? `<div class="detail-item"><div class="detail-label">Brand</div><div class="detail-value">${psaData.brand}</div></div>` : ''}
+                                ${psaData.category ? `<div class="detail-item"><div class="detail-label">Category</div><div class="detail-value">${psaData.category}</div></div>` : ''}
+                                ${psaData.year ? `<div class="detail-item"><div class="detail-label">Year</div><div class="detail-value">${psaData.year}</div></div>` : ''}
+                                ${psaData.subject ? `<div class="detail-item"><div class="detail-label">Subject</div><div class="detail-value">${psaData.subject}</div></div>` : ''}
+                            </div>
+                            ${card.cert_number ? `<div style="margin-top: 10px; font-size: 0.85em; color: #666;">Cert #: ${card.cert_number}</div>` : ''}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <a href="${card.ebay_url}" target="_blank" style="color: #f5576c; text-decoration: none; font-weight: bold;">View on eBay →</a>
+                        </div>
+                    `;
+                    
+                    cardGrid.appendChild(cardDiv);
+                });
+            } else {
+                cardGrid.innerHTML = '<div class="error">No sample cards to display.</div>';
+            }
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Get eBay Token
+        async function getEbayToken() {
+            const btn = document.getElementById('getTokenBtn');
+            const resultDiv = document.getElementById('tokenResult');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Getting token...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/get-ebay-token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({environment: 'production'})
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ Token Generated Successfully!</strong><br><br>
+                            <div style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; font-family: monospace; word-break: break-all; margin-top: 10px; font-size: 0.9em;">
+                                ${data.token}
+                            </div>
+                            <p style="margin-top: 15px; font-size: 0.9em;">
+                                <strong>Next Steps:</strong><br>
+                                1. Copy the token above<br>
+                                2. Add it to your <code>.env.local</code> file as:<br>
+                                <code style="background: #f0f0f0; padding: 5px; border-radius: 4px; display: block; margin-top: 5px;">EBAY_OAUTH=${data.token}</code><br>
+                                3. Restart the app
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>❌ ${data.error || 'Failed to get token'}</strong><br><br>
+                            <p style="font-size: 0.9em;">
+                                <strong>Setup Required:</strong><br>
+                                1. Go to <a href="https://developer.ebay.com/my/keys" target="_blank">eBay Developer Keys</a><br>
+                                2. Find your app and get the <strong>Cert ID (Client Secret)</strong><br>
+                                3. Add both to your <code>.env.local</code> file:<br>
+                                <code style="background: #f0f0f0; padding: 5px; border-radius: 4px; display: block; margin-top: 5px;">EBAY_CLIENT_ID=NicoZahn-YugiohPr-PRD-23cd82f4c-632193b1</code><br>
+                                <code style="background: #f0f0f0; padding: 5px; border-radius: 4px; display: block; margin-top: 5px;">EBAY_CLIENT_SECRET=your_cert_id_here</code><br>
+                                4. Then try again!
+                            </p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔑 Get eBay OAuth Token Automatically';
+            }
+        }
+        
+        // Watch Search Functions
+        async function performWatchSearch() {
+            const query = document.getElementById('watchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            const brandFilterValue = document.getElementById('watchBrand').value.trim();
+            const brandFilter = brandFilterValue ? brandFilterValue : null;
+            const maxResults = parseInt(document.getElementById('watchMaxResults').value) || 20;
+            const minSpreadPct = parseFloat(document.getElementById('watchMinSpread').value) || 10.0;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingMessage').textContent = 'Searching eBay for watches and checking market prices...';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('watchSearchBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/search-watches', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: query,
+                        brand_filter: brandFilter,
+                        max_results: maxResults,
+                        min_spread_pct: minSpreadPct
+                    })
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('watchSearchBtn').disabled = false;
+                
+                if (response.ok) {
+                    displayWatchResults(data);
+                } else {
+                    showError(data.error || 'Search failed');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('watchSearchBtn').disabled = false;
+                showError('Error: ' + error.message);
+            }
+        }
+        
+        function displayWatchResults(data) {
+            const statsDiv = document.getElementById('stats');
+            const cardGrid = document.getElementById('cardGrid');
+            
+            const arbitrageCount = data.arbitrage_count || 0;
+            const watchesWithPrice = data.watches_with_price || 0;
+            const totalProfit = data.total_potential_profit || 0;
+            
+            // Display stats
+            statsDiv.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.count}</div>
+                        <div class="stat-label">Watches Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${watchesWithPrice}</div>
+                        <div class="stat-label">With Market Prices</div>
+                    </div>
+                    <div class="stat-card" style="background: ${arbitrageCount > 0 ? '#c8e6c9' : '#f5f5f5'}; border: 2px solid ${arbitrageCount > 0 ? '#4caf50' : '#ddd'};">
+                        <div class="stat-value" style="color: ${arbitrageCount > 0 ? '#2e7d32' : '#666'};">
+                            ${arbitrageCount}
+                        </div>
+                        <div class="stat-label">💰 Arbitrage Opportunities</div>
+                    </div>
+                    ${totalProfit > 0 ? `
+                    <div class="stat-card" style="background: #fff3cd; border: 2px solid #ffc107;">
+                        <div class="stat-value" style="color: #856404;">
+                            $${totalProfit.toFixed(2)}
+                        </div>
+                        <div class="stat-label">Total Potential Profit</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Display watches
+            cardGrid.innerHTML = '';
+            
+            if (data.items.length === 0) {
+                cardGrid.innerHTML = '<div class="error">No watches found. Try a different search query.</div>';
+                document.getElementById('results').style.display = 'block';
+                return;
+            }
+            
+            data.items.forEach(item => {
+                const watchDiv = document.createElement('div');
+                
+                // Highlight arbitrage opportunities
+                if (item.is_arbitrage) {
+                    watchDiv.className = 'card-item';
+                    watchDiv.style.border = '3px solid #4caf50';
+                    watchDiv.style.background = 'linear-gradient(to bottom, #f1f8f4, #ffffff)';
+                    watchDiv.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
+                } else {
+                    watchDiv.className = 'card-item';
+                }
+                
+                const hasMarketPrice = item.market_price && item.market_price > 0;
+                const hasRetailPrice = item.retail_price && item.retail_price > 0;
+                const isArbitrage = item.is_arbitrage;
+                
+                // Retail Price Display
+                let retailPriceHtml = '';
+                if (hasRetailPrice) {
+                    retailPriceHtml = `
+                        <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+                            <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 5px;">Retail Price (MSRP)</div>
+                            <div style="font-size: 1.8em; font-weight: bold;">$${item.retail_price.toFixed(2)}</div>
+                            ${item.retail_discount && item.retail_discount > 0 ? `
+                                <div style="font-size: 0.85em; opacity: 0.9; margin-top: 5px; color: #c8e6c9;">
+                                    ${item.retail_discount_pct ? `Save ${item.retail_discount_pct.toFixed(1)}%` : ''} ($${item.retail_discount.toFixed(2)} off retail)
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+                
+                // Market Price Display
+                let marketPriceHtml = '';
+                if (hasMarketPrice) {
+                    marketPriceHtml = `
+                        <div style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);">
+                            <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 5px;">Market Price</div>
+                            <div style="font-size: 1.8em; font-weight: bold;">$${item.market_price.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+                
+                // Arbitrage opportunity section
+                let arbitrageHtml = '';
+                if (isArbitrage && hasMarketPrice) {
+                    arbitrageHtml = `
+                        <div class="arbitrage-opportunity">
+                            <h4>💰 ARBITRAGE OPPORTUNITY!</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                ${hasRetailPrice ? `
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Retail Price (MSRP)</div>
+                                    <div class="detail-value" style="color: #1976d2; font-weight: bold; font-size: 1.1em;">
+                                        $${item.retail_price.toFixed(2)}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Market Price</div>
+                                    <div class="detail-value" style="color: #2e7d32; font-weight: bold; font-size: 1.1em;">
+                                        $${item.market_price.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Your Cost</div>
+                                    <div class="detail-value" style="color: #666;">
+                                        $${item.all_in_cost.toFixed(2)}
+                                    </div>
+                                </div>
+                                ${hasRetailPrice && item.retail_discount > 0 ? `
+                                <div class="detail-item" style="background: #e3f2fd; grid-column: 1 / -1;">
+                                    <div class="detail-label">Discount from Retail</div>
+                                    <div class="detail-value" style="color: #1976d2; font-weight: bold; font-size: 1.1em;">
+                                        $${item.retail_discount.toFixed(2)} (${item.retail_discount_pct.toFixed(1)}% off MSRP)
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-item" style="background: #c8e6c9; grid-column: 1 / -1;">
+                                    <div class="detail-label">Potential Profit (vs Market)</div>
+                                    <div class="detail-value" style="color: #2e7d32; font-weight: bold; font-size: 1.2em;">
+                                        $${item.spread.toFixed(2)} (${item.spread_pct.toFixed(1)}%)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (hasMarketPrice && !isArbitrage) {
+                    arbitrageHtml = `
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #ffc107;">
+                            <h4 style="color: #856404; margin-bottom: 10px;">📊 Price Comparison</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                ${hasRetailPrice ? `
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Retail Price (MSRP)</div>
+                                    <div class="detail-value" style="color: #1976d2; font-weight: bold;">
+                                        $${item.retail_price.toFixed(2)}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Market Price</div>
+                                    <div class="detail-value">$${item.market_price.toFixed(2)}</div>
+                                </div>
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Your Cost</div>
+                                    <div class="detail-value">$${item.all_in_cost.toFixed(2)}</div>
+                                </div>
+                                ${hasRetailPrice && item.retail_discount ? `
+                                <div class="detail-item" style="background: #e3f2fd; grid-column: 1 / -1;">
+                                    <div class="detail-label">Discount from Retail</div>
+                                    <div class="detail-value" style="color: #1976d2; font-weight: bold;">
+                                        $${item.retail_discount.toFixed(2)} ${item.retail_discount_pct ? `(${item.retail_discount_pct.toFixed(1)}% off MSRP)` : ''}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-item" style="background: #ffe0b2; grid-column: 1 / -1;">
+                                    <div class="detail-label">Difference (vs Market)</div>
+                                    <div class="detail-value" style="color: #e65100;">
+                                        $${(item.market_price - item.all_in_cost).toFixed(2)} (${((item.market_price - item.all_in_cost) / item.market_price * 100).toFixed(1)}%)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (hasRetailPrice && !hasMarketPrice) {
+                    // Show retail price info even if market price is not available
+                    arbitrageHtml = `
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #2196f3;">
+                            <h4 style="color: #1976d2; margin-bottom: 10px;">💰 Retail Price Comparison</h4>
+                            <div class="details" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Retail Price (MSRP)</div>
+                                    <div class="detail-value" style="color: #1976d2; font-weight: bold; font-size: 1.1em;">
+                                        $${item.retail_price.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div class="detail-item" style="background: #fff;">
+                                    <div class="detail-label">Your Cost</div>
+                                    <div class="detail-value">$${item.all_in_cost.toFixed(2)}</div>
+                                </div>
+                                ${item.retail_discount && item.retail_discount > 0 ? `
+                                <div class="detail-item" style="background: #c8e6c9; grid-column: 1 / -1;">
+                                    <div class="detail-label">Savings from Retail</div>
+                                    <div class="detail-value" style="color: #2e7d32; font-weight: bold; font-size: 1.1em;">
+                                        $${item.retail_discount.toFixed(2)} (${item.retail_discount_pct.toFixed(1)}% off MSRP)
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                watchDiv.innerHTML = `
+                    ${isArbitrage ? '<div style="background: #4caf50; color: white; padding: 8px; border-radius: 8px 8px 0 0; font-weight: bold; text-align: center;">💰 ARBITRAGE</div>' : ''}
+                    ${item.image_url ? `<img src="${item.image_url}" alt="Watch image" onerror="this.style.display='none'">` : ''}
+                    <h3>${item.title}</h3>
+                    
+                    ${retailPriceHtml}
+                    ${marketPriceHtml}
+                    
+                    <div class="price" style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">eBay Total Cost:</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #f5576c;">$${item.all_in_cost.toFixed(2)}</div>
+                        <div style="font-size: 0.85em; color: #999; margin-top: 5px;">
+                            Price: $${item.ebay_price.toFixed(2)} + Shipping: $${item.shipping.toFixed(2)}${item.est_tax ? ` + Tax: $${item.est_tax.toFixed(2)}` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="details" style="margin-top: 10px;">
+                        ${item.brand ? `<div class="detail-item"><div class="detail-label">Brand</div><div class="detail-value">${item.brand}</div></div>` : ''}
+                        ${item.model ? `<div class="detail-item"><div class="detail-label">Model</div><div class="detail-value">${item.model}</div></div>` : ''}
+                        ${item.model_number ? `<div class="detail-item"><div class="detail-label">Model #</div><div class="detail-value">${item.model_number}</div></div>` : ''}
+                        ${item.condition ? `<div class="detail-item"><div class="detail-label">Condition</div><div class="detail-value">${item.condition}</div></div>` : ''}
+                    </div>
+                    
+                    ${arbitrageHtml}
+                    
+                    ${item.watchcharts_url ? `
+                    <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🔍 Verify on WatchCharts</div>
+                        <div style="font-size: 0.85em; opacity: 0.8; margin-bottom: 10px; font-weight: 500;">
+                            ${item.brand ? item.brand : ''} ${item.model ? item.model : ''} ${item.model_number ? '(' + item.model_number + ')' : ''}
+                        </div>
+                        <div style="font-size: 0.75em; opacity: 0.7; margin-bottom: 10px; font-style: italic;">
+                            Opens search results for this watch to verify market price and compare listings
+                        </div>
+                        <div style="font-size: 0.8em; opacity: 0.8; margin-top: 8px;">
+                            <a href="${item.watchcharts_url}" target="_blank" style="color: white; text-decoration: underline; font-weight: bold; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px; display: inline-block;">
+                                Open WatchCharts Search →
+                            </a>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-top: 15px;">
+                        <a href="${item.url}" target="_blank" style="color: #f5576c; text-decoration: none; font-weight: bold;">View on eBay →</a>
+                    </div>
+                `;
+                
+                cardGrid.appendChild(watchDiv);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Allow Enter key to submit watch search
+        document.addEventListener('DOMContentLoaded', function() {
+            const watchQuery = document.getElementById('watchQuery');
+            if (watchQuery) {
+                watchQuery.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performWatchSearch();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+

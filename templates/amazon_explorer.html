@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon API Explorer - Full Capabilities</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            color: #ff6b6b;
+            border-bottom: 3px solid #ff6b6b;
+            background: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b6b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .result-item:hover {
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+        }
+        
+        .result-item h3 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+        
+        .result-item img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .result-item .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+        }
+        
+        .result-item .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .result-item .detail-item {
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+        
+        .result-item .detail-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .result-item .detail-value {
+            color: #333;
+            margin-top: 4px;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #fcc;
+        }
+        
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #cfc;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-buttons button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .json-viewer {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        details {
+            margin-top: 15px;
+        }
+        
+        details summary {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        details summary:hover {
+            background: #e9ecef;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Amazon API Explorer</h1>
+            <p>Explore the full capabilities of Amazon API v3</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('search')">🔍 Product Search</button>
+            <button class="tab" onclick="switchTab('best-sellers')">🔥 Best Sellers</button>
+            <button class="tab" onclick="switchTab('category')">📁 Products by Category</button>
+            <button class="tab" onclick="switchTab('deals')">💰 Deals</button>
+            <button class="tab" onclick="switchTab('product-details')">📋 Product Details</button>
+            <button class="tab" onclick="switchTab('reviews')">⭐ Reviews</button>
+            <button class="tab" onclick="switchTab('offers')">🛍️ Product Offers</button>
+            <button class="tab" onclick="switchTab('seller')">👤 Seller Products</button>
+            <button class="tab" onclick="switchTab('influencer')">🌟 Influencers</button>
+        </div>
+        
+        <!-- Product Search Tab -->
+        <div id="search" class="tab-content active">
+            <h2>Search Amazon Products</h2>
+            <div class="form-group">
+                <label>Search Query</label>
+                <input type="text" id="searchQuery" placeholder="e.g., iPhone 15, Gucci boots, etc.">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Max Results</label>
+                    <input type="number" id="searchMaxResults" value="20" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Sort By</label>
+                    <select id="searchSort">
+                        <option value="Featured">Featured</option>
+                        <option value="Price: Low to High">Price: Low to High</option>
+                        <option value="Price: High to Low">Price: High to Low</option>
+                        <option value="Newest">Newest</option>
+                        <option value="Customer Rating">Customer Rating</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="performSearch()">🔍 Search Products</button>
+            <div id="searchLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Searching Amazon...</p>
+            </div>
+            <div id="searchResults" class="results"></div>
+        </div>
+        
+        <!-- Best Sellers Tab -->
+        <div id="best-sellers" class="tab-content">
+            <h2>Amazon Best Sellers</h2>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="bestSellerCategory">
+                    <option value="electronics">Electronics</option>
+                    <option value="fashion">Fashion</option>
+                    <option value="mobile-apps">Mobile Apps</option>
+                    <option value="books">Books</option>
+                    <option value="home-garden">Home & Garden</option>
+                    <option value="beauty">Beauty</option>
+                    <option value="automotive">Automotive</option>
+                    <option value="kitchen">Kitchen</option>
+                    <option value="pet-supplies">Pet Supplies</option>
+                    <option value="musical-instruments">Musical Instruments</option>
+                    <option value="office-products">Office Products</option>
+                </select>
+            </div>
+            <button onclick="loadBestSellers()">🔥 Load Best Sellers</button>
+            <div id="bestSellersLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading best sellers...</p>
+            </div>
+            <div id="bestSellersResults" class="results"></div>
+        </div>
+        
+        <!-- Products by Category Tab -->
+        <div id="category" class="tab-content">
+            <h2>Products by Category</h2>
+            <div class="form-group">
+                <label>Category</label>
+                <input type="text" id="categoryName" placeholder="e.g., electronics, fashion, etc.">
+            </div>
+            <button onclick="loadProductsByCategory()">📁 Load Products</button>
+            <div id="categoryLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading products...</p>
+            </div>
+            <div id="categoryResults" class="results"></div>
+        </div>
+        
+        <!-- Deals Tab -->
+        <div id="deals" class="tab-content">
+            <h2>Amazon Deals</h2>
+            <button onclick="loadDeals()">💰 Load Deals</button>
+            <div id="dealsLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading deals...</p>
+            </div>
+            <div id="dealsResults" class="results"></div>
+        </div>
+        
+        <!-- Product Details Tab -->
+        <div id="product-details" class="tab-content">
+            <h2>Product Details by ASIN</h2>
+            <div class="form-group">
+                <label>ASIN</label>
+                <input type="text" id="productAsin" placeholder="e.g., B08XYZ123">
+            </div>
+            <button onclick="getProductDetails()">📋 Get Details</button>
+            <div id="productDetailsLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading product details...</p>
+            </div>
+            <div id="productDetailsResults" class="results"></div>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div id="reviews" class="tab-content">
+            <h2>Product Reviews</h2>
+            <div class="form-group">
+                <label>ASIN</label>
+                <input type="text" id="reviewsAsin" placeholder="e.g., B08XYZ123">
+            </div>
+            <button onclick="getReviews()">⭐ Get Reviews</button>
+            <div id="reviewsLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading reviews...</p>
+            </div>
+            <div id="reviewsResults" class="results"></div>
+        </div>
+        
+        <!-- Product Offers Tab -->
+        <div id="offers" class="tab-content">
+            <h2>Product Offers (Multiple Sellers)</h2>
+            <div class="form-group">
+                <label>ASIN</label>
+                <input type="text" id="offersAsin" placeholder="e.g., B08XYZ123">
+            </div>
+            <button onclick="getOffers()">🛍️ Get Offers</button>
+            <div id="offersLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading offers...</p>
+            </div>
+            <div id="offersResults" class="results"></div>
+        </div>
+        
+        <!-- Seller Products Tab -->
+        <div id="seller" class="tab-content">
+            <h2>Seller Products</h2>
+            <div class="form-group">
+                <label>Seller ID</label>
+                <input type="text" id="sellerId" placeholder="e.g., A1XYZ123">
+            </div>
+            <button onclick="getSellerProducts()">👤 Get Seller Products</button>
+            <div id="sellerLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading seller products...</p>
+            </div>
+            <div id="sellerResults" class="results"></div>
+        </div>
+        
+        <!-- Influencer Tab -->
+        <div id="influencer" class="tab-content">
+            <h2>🌟 Influencer Explorer</h2>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+                <strong>💡 Note:</strong> To see <strong>trending products</strong> without needing any IDs, use the <strong>"🔥 Best Sellers"</strong> tab above! 
+                The influencer section below requires specific influencer IDs to view their posts and products.
+            </div>
+            <p style="color: #666; margin-bottom: 20px;">Discover products from specific Amazon influencers (requires influencer ID)</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #ff6b6b; margin-bottom: 10px;">📋 Influencer Profile</h3>
+                    <div class="form-group">
+                        <label>Influencer ID</label>
+                        <input type="text" id="influencerId" placeholder="e.g., A1XYZ123">
+                    </div>
+                    <button onclick="getInfluencerProfile()">Get Profile</button>
+                    <div id="influencerProfileLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading profile...</p>
+                    </div>
+                    <div id="influencerProfileResults" class="results" style="margin-top: 15px;"></div>
+                </div>
+                
+                <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #ff6b6b; margin-bottom: 10px;">📝 Influencer Posts</h3>
+                    <div class="form-group">
+                        <label>Influencer ID</label>
+                        <input type="text" id="influencerPostsId" placeholder="e.g., A1XYZ123">
+                    </div>
+                    <button onclick="getInfluencerPosts()">Get Posts</button>
+                    <div id="influencerPostsLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading posts...</p>
+                    </div>
+                    <div id="influencerPostsResults" class="results" style="margin-top: 15px;"></div>
+                </div>
+                
+                <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #ff6b6b; margin-bottom: 10px;">🛍️ Post Products</h3>
+                    <div class="form-group">
+                        <label>Post ID</label>
+                        <input type="text" id="postId" placeholder="e.g., POST123">
+                    </div>
+                    <button onclick="getPostProducts()">Get Products</button>
+                    <div id="postProductsLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading products...</p>
+                    </div>
+                    <div id="postProductsResults" class="results" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                <h3 style="color: #ff6b6b; margin-bottom: 10px;">💡 How to Use</h3>
+                <ul style="color: #666; line-height: 1.8;">
+                    <li><strong>Influencer Profile:</strong> Get information about an influencer (name, bio, follower count, etc.)</li>
+                    <li><strong>Influencer Posts:</strong> Browse all posts from a specific influencer to see what products they're promoting</li>
+                    <li><strong>Post Products:</strong> See all products featured in a specific influencer post - great for finding trending items!</li>
+                </ul>
+                <p style="color: #999; font-size: 0.9em; margin-top: 15px;">
+                    <strong>Note:</strong> You'll need to find influencer IDs from Amazon's influencer pages. These are typically found in the URL of an influencer's Amazon storefront.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Find and activate the corresponding tab button
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function showLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'block';
+        }
+        
+        function hideLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'none';
+        }
+        
+        function showError(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+        
+        function displayProduct(item, containerId) {
+            const container = document.getElementById(containerId);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'result-item';
+            
+            const image = item.image_url || item.product_photo || '';
+            const price = item.price || item.product_price || 'N/A';
+            const rating = item.rating || item.product_star_rating || 'N/A';
+            const reviews = item.review_count || item.product_num_ratings || 'N/A';
+            const asin = item.asin || item.item_id || 'N/A';
+            
+            itemDiv.innerHTML = `
+                <h3>${item.title || item.product_title || 'Unknown'}</h3>
+                ${image ? `<img src="${image}" alt="Product image" onerror="this.style.display='none'">` : ''}
+                <div class="price">$${typeof price === 'number' ? price.toFixed(2) : price}</div>
+                <div class="details">
+                    <div class="detail-item">
+                        <div class="detail-label">ASIN</div>
+                        <div class="detail-value">${asin}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Rating</div>
+                        <div class="detail-value">${rating}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Reviews</div>
+                        <div class="detail-value">${reviews}</div>
+                    </div>
+                    ${item.prime_eligible ? '<div class="detail-item"><div class="detail-label">Prime</div><div class="detail-value">✅ Eligible</div></div>' : ''}
+                </div>
+                ${item.url || item.product_url ? `<a href="${item.url || item.product_url}" target="_blank" style="display: inline-block; margin-top: 10px; color: #ff6b6b; text-decoration: none;">View on Amazon →</a>` : ''}
+                <div class="action-buttons">
+                    <button onclick="getDetailsForAsin('${asin}')">📋 Get Details</button>
+                    <button onclick="getReviewsForAsin('${asin}')">⭐ Get Reviews</button>
+                    <button onclick="getOffersForAsin('${asin}')">🛍️ Get Offers</button>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        }
+        
+        // Product Search
+        async function performSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            const maxResults = parseInt(document.getElementById('searchMaxResults').value) || 20;
+            const sort = document.getElementById('searchSort').value;
+            
+            showLoading('searchLoading');
+            document.getElementById('searchResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: query,
+                        max_results: maxResults,
+                        sort: sort
+                    })
+                });
+                
+                const data = await response.json();
+                hideLoading('searchLoading');
+                
+                if (response.ok) {
+                    if (data.items && data.items.length > 0) {
+                        document.getElementById('searchResults').innerHTML = `<div class="success">✅ Found ${data.count} products</div>`;
+                        data.items.forEach(item => displayProduct(item, 'searchResults'));
+                    } else {
+                        showError('searchResults', 'No products found');
+                    }
+                } else {
+                    showError('searchResults', data.error || 'Search failed');
+                }
+            } catch (error) {
+                hideLoading('searchLoading');
+                showError('searchResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Best Sellers
+        async function loadBestSellers() {
+            const category = document.getElementById('bestSellerCategory').value;
+            showLoading('bestSellersLoading');
+            document.getElementById('bestSellersResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/best-sellers', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({category: category, max_items: 50})
+                });
+                
+                const data = await response.json();
+                hideLoading('bestSellersLoading');
+                
+                if (response.ok) {
+                    if (data.items && data.items.length > 0) {
+                        document.getElementById('bestSellersResults').innerHTML = `<div class="success">✅ Found ${data.count} best sellers in ${category}</div>`;
+                        data.items.forEach(item => displayProduct(item, 'bestSellersResults'));
+                    } else {
+                        showError('bestSellersResults', 'No best sellers found');
+                    }
+                } else {
+                    showError('bestSellersResults', data.error || 'Failed to load best sellers');
+                }
+            } catch (error) {
+                hideLoading('bestSellersLoading');
+                showError('bestSellersResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Products by Category
+        async function loadProductsByCategory() {
+            const category = document.getElementById('categoryName').value.trim();
+            if (!category) {
+                alert('Please enter a category');
+                return;
+            }
+            
+            showLoading('categoryLoading');
+            document.getElementById('categoryResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/products-by-category', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({category: category})
+                });
+                
+                const data = await response.json();
+                hideLoading('categoryLoading');
+                
+                if (response.ok) {
+                    document.getElementById('categoryResults').innerHTML = `
+                        <div class="success">✅ Products loaded</div>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    showError('categoryResults', data.error || 'Failed to load products');
+                }
+            } catch (error) {
+                hideLoading('categoryLoading');
+                showError('categoryResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Deals
+        async function loadDeals() {
+            showLoading('dealsLoading');
+            document.getElementById('dealsResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/deals', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                hideLoading('dealsLoading');
+                
+                if (response.ok) {
+                    document.getElementById('dealsResults').innerHTML = `
+                        <div class="success">✅ Deals loaded</div>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    showError('dealsResults', data.error || 'Failed to load deals');
+                }
+            } catch (error) {
+                hideLoading('dealsLoading');
+                showError('dealsResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Product Details
+        async function getProductDetails() {
+            const asin = document.getElementById('productAsin').value.trim();
+            if (!asin) {
+                alert('Please enter an ASIN');
+                return;
+            }
+            
+            showLoading('productDetailsLoading');
+            document.getElementById('productDetailsResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/product-details', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({asin: asin})
+                });
+                
+                const data = await response.json();
+                hideLoading('productDetailsLoading');
+                
+                if (response.ok) {
+                    document.getElementById('productDetailsResults').innerHTML = `
+                        <div class="success">✅ Product details loaded</div>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    showError('productDetailsResults', data.error || 'Failed to load product details');
+                }
+            } catch (error) {
+                hideLoading('productDetailsLoading');
+                showError('productDetailsResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Reviews
+        async function getReviews() {
+            const asin = document.getElementById('reviewsAsin').value.trim();
+            if (!asin) {
+                alert('Please enter an ASIN');
+                return;
+            }
+            
+            showLoading('reviewsLoading');
+            document.getElementById('reviewsResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/product-reviews', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({asin: asin})
+                });
+                
+                const data = await response.json();
+                hideLoading('reviewsLoading');
+                
+                if (response.ok) {
+                    displayReviews(data, 'reviewsResults');
+                } else {
+                    showError('reviewsResults', data.error || 'Failed to load reviews');
+                }
+            } catch (error) {
+                hideLoading('reviewsLoading');
+                showError('reviewsResults', 'Error: ' + error.message);
+            }
+        }
+        
+        function displayReviews(data, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // Try to extract reviews from different possible response structures
+            let reviews = [];
+            let reviewData = data.reviews || data;
+            
+            // Handle different API response structures
+            // The actual API returns: { status: "OK", data: { reviews: [...] } }
+            if (reviewData.data && reviewData.data.reviews) {
+                reviews = reviewData.data.reviews;
+            } else if (reviewData.reviews) {
+                reviews = Array.isArray(reviewData.reviews) ? reviewData.reviews : [];
+            } else if (Array.isArray(reviewData)) {
+                reviews = reviewData;
+            } else if (reviewData.data && Array.isArray(reviewData.data)) {
+                reviews = reviewData.data;
+            }
+            
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div class="error">⚠️ No reviews found. The API response structure may be different.</div>
+                    <details style="margin-top: 20px;">
+                        <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                        <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+                    </details>
+                `;
+                return;
+            }
+            
+            // Get ASIN from response
+            const asin = data.asin || (data.data && data.data.asin) || 'N/A';
+            
+            // Display summary
+            const summary = document.createElement('div');
+            summary.className = 'success';
+            summary.innerHTML = `✅ Found ${reviews.length} review${reviews.length !== 1 ? 's' : ''} for ASIN: ${asin}`;
+            container.appendChild(summary);
+            
+            // Display each review
+            reviews.forEach((review, index) => {
+                const reviewDiv = document.createElement('div');
+                reviewDiv.className = 'result-item';
+                reviewDiv.style.marginTop = '20px';
+                
+                // Extract review data - match actual API field names
+                const rating = review.review_star_rating || review.rating || review.star_rating || review.stars || review.overall || 'N/A';
+                const title = review.review_title || review.title || '';
+                const text = review.review_comment || review.review_text || review.text || review.body || review.content || 'No review text available';
+                const reviewer = review.review_author || review.reviewer_name || review.reviewer || review.name || 'Anonymous';
+                const date = review.review_date || review.review_date || review.date || review.posted_date || '';
+                const helpful = review.helpful_vote_statement || review.helpful_count || review.helpful || review.helpful_votes || '';
+                const verified = review.is_verified_purchase || review.verified_purchase || review.is_verified || false;
+                const reviewLink = review.review_link || '';
+                
+                // Parse rating to number for stars display
+                let ratingNum = 0;
+                if (typeof rating === 'string') {
+                    ratingNum = parseInt(rating) || 0;
+                } else if (typeof rating === 'number') {
+                    ratingNum = Math.round(rating);
+                }
+                
+                // Create stars display
+                const stars = ratingNum > 0 ? '⭐'.repeat(ratingNum) : rating;
+                
+                reviewDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #333;">
+                                ${title || `Review #${index + 1}`}
+                            </div>
+                            <div style="color: #666; margin-bottom: 10px;">
+                                <span style="font-size: 1.1em; margin-right: 10px;">${stars}</span>
+                                <span style="color: #ff6b6b; font-weight: bold;">${rating} out of 5</span>
+                                ${verified ? '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 10px;">✓ Verified Purchase</span>' : ''}
+                            </div>
+                        </div>
+                        <div style="text-align: right; color: #999; font-size: 0.9em; margin-left: 20px;">
+                            <div style="font-weight: 500; color: #666;">${reviewer}</div>
+                            ${date ? `<div style="margin-top: 5px;">${date}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; line-height: 1.6; color: #333; white-space: pre-wrap;">
+                        ${text}
+                    </div>
+                    ${helpful ? `<div style="color: #666; font-size: 0.9em; margin-top: 5px;">👍 ${helpful}</div>` : ''}
+                    ${reviewLink ? `<div style="margin-top: 10px;"><a href="${reviewLink}" target="_blank" style="color: #ff6b6b; text-decoration: none; font-size: 0.9em;">View full review on Amazon →</a></div>` : ''}
+                `;
+                
+                container.appendChild(reviewDiv);
+            });
+            
+            // Add raw JSON toggle for debugging
+            const details = document.createElement('details');
+            details.style.marginTop = '20px';
+            details.innerHTML = `
+                <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response (for debugging)</summary>
+                <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+            `;
+            container.appendChild(details);
+        }
+        
+        // Offers
+        async function getOffers() {
+            const asin = document.getElementById('offersAsin').value.trim();
+            if (!asin) {
+                alert('Please enter an ASIN');
+                return;
+            }
+            
+            showLoading('offersLoading');
+            document.getElementById('offersResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/product-offers', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({asin: asin})
+                });
+                
+                const data = await response.json();
+                hideLoading('offersLoading');
+                
+                if (response.ok) {
+                    document.getElementById('offersResults').innerHTML = `
+                        <div class="success">✅ Offers loaded</div>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    showError('offersResults', data.error || 'Failed to load offers');
+                }
+            } catch (error) {
+                hideLoading('offersLoading');
+                showError('offersResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Seller Products
+        async function getSellerProducts() {
+            const sellerId = document.getElementById('sellerId').value.trim();
+            if (!sellerId) {
+                alert('Please enter a Seller ID');
+                return;
+            }
+            
+            showLoading('sellerLoading');
+            document.getElementById('sellerResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/seller-products', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({seller_id: sellerId})
+                });
+                
+                const data = await response.json();
+                hideLoading('sellerLoading');
+                
+                if (response.ok) {
+                    document.getElementById('sellerResults').innerHTML = `
+                        <div class="success">✅ Seller products loaded</div>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    showError('sellerResults', data.error || 'Failed to load seller products');
+                }
+            } catch (error) {
+                hideLoading('sellerLoading');
+                showError('sellerResults', 'Error: ' + error.message);
+            }
+        }
+        
+        // Helper functions for action buttons
+        function getDetailsForAsin(asin) {
+            document.getElementById('productAsin').value = asin;
+            switchTab('product-details');
+            document.querySelector('.tab[onclick*="product-details"]').click();
+            setTimeout(() => getProductDetails(), 100);
+        }
+        
+        function getReviewsForAsin(asin) {
+            document.getElementById('reviewsAsin').value = asin;
+            switchTab('reviews');
+            document.querySelector('.tab[onclick*="reviews"]').click();
+            setTimeout(() => getReviews(), 100);
+        }
+        
+        function getOffersForAsin(asin) {
+            document.getElementById('offersAsin').value = asin;
+            switchTab('offers');
+            document.querySelector('.tab[onclick*="offers"]').click();
+            setTimeout(() => getOffers(), 100);
+        }
+        
+        // Influencer Profile
+        async function getInfluencerProfile() {
+            const influencerId = document.getElementById('influencerId').value.trim();
+            if (!influencerId) {
+                alert('Please enter an Influencer ID');
+                return;
+            }
+            
+            showLoading('influencerProfileLoading');
+            document.getElementById('influencerProfileResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/influencer-profile', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({influencer_id: influencerId})
+                });
+                
+                const data = await response.json();
+                hideLoading('influencerProfileLoading');
+                
+                if (response.ok) {
+                    displayInfluencerProfile(data, 'influencerProfileResults');
+                } else {
+                    showError('influencerProfileResults', data.error || 'Failed to load influencer profile');
+                }
+            } catch (error) {
+                hideLoading('influencerProfileLoading');
+                showError('influencerProfileResults', 'Error: ' + error.message);
+            }
+        }
+        
+        function displayInfluencerProfile(data, containerId) {
+            const container = document.getElementById(containerId);
+            const profile = data.profile || data;
+            
+            let profileData = profile;
+            if (profile.data) {
+                profileData = profile.data;
+            }
+            
+            container.innerHTML = `
+                <div class="success">✅ Influencer profile loaded</div>
+                <div class="result-item" style="margin-top: 15px;">
+                    <h3 style="color: #ff6b6b; margin-bottom: 15px;">Profile Information</h3>
+                    <div class="details">
+                        ${profileData.name ? `<div class="detail-item"><div class="detail-label">Name</div><div class="detail-value">${profileData.name}</div></div>` : ''}
+                        ${profileData.username ? `<div class="detail-item"><div class="detail-label">Username</div><div class="detail-value">${profileData.username}</div></div>` : ''}
+                        ${profileData.followers ? `<div class="detail-item"><div class="detail-label">Followers</div><div class="detail-value">${profileData.followers}</div></div>` : ''}
+                        ${profileData.bio ? `<div class="detail-item"><div class="detail-label">Bio</div><div class="detail-value">${profileData.bio}</div></div>` : ''}
+                        ${profileData.url ? `<div class="detail-item"><div class="detail-label">URL</div><div class="detail-value"><a href="${profileData.url}" target="_blank">${profileData.url}</a></div></div>` : ''}
+                    </div>
+                </div>
+                <details style="margin-top: 15px;">
+                    <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                    <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+                </details>
+            `;
+        }
+        
+        // Influencer Posts
+        async function getInfluencerPosts() {
+            const influencerId = document.getElementById('influencerPostsId').value.trim();
+            if (!influencerId) {
+                alert('Please enter an Influencer ID');
+                return;
+            }
+            
+            showLoading('influencerPostsLoading');
+            document.getElementById('influencerPostsResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/influencer-posts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({influencer_id: influencerId})
+                });
+                
+                const data = await response.json();
+                hideLoading('influencerPostsLoading');
+                
+                if (response.ok) {
+                    displayInfluencerPosts(data, 'influencerPostsResults');
+                } else {
+                    showError('influencerPostsResults', data.error || 'Failed to load influencer posts');
+                }
+            } catch (error) {
+                hideLoading('influencerPostsLoading');
+                showError('influencerPostsResults', 'Error: ' + error.message);
+            }
+        }
+        
+        function displayInfluencerPosts(data, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            let posts = [];
+            let postsData = data.posts || data;
+            
+            if (postsData.data && postsData.data.posts) {
+                posts = postsData.data.posts;
+            } else if (postsData.posts) {
+                posts = Array.isArray(postsData.posts) ? postsData.posts : [];
+            } else if (Array.isArray(postsData)) {
+                posts = postsData;
+            } else if (postsData.data && Array.isArray(postsData.data)) {
+                posts = postsData.data;
+            }
+            
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="error">⚠️ No posts found. The API response structure may be different.</div>
+                    <details style="margin-top: 20px;">
+                        <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                        <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+                    </details>
+                `;
+                return;
+            }
+            
+            const summary = document.createElement('div');
+            summary.className = 'success';
+            summary.innerHTML = `✅ Found ${posts.length} post${posts.length !== 1 ? 's' : ''} from influencer: ${data.influencer_id || 'N/A'}`;
+            container.appendChild(summary);
+            
+            posts.forEach((post, index) => {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'result-item';
+                postDiv.style.marginTop = '20px';
+                
+                const postId = post.post_id || post.id || '';
+                const title = post.post_title || post.title || `Post #${index + 1}`;
+                const content = post.post_content || post.content || post.description || '';
+                const date = post.post_date || post.date || '';
+                const image = post.post_image || post.image || '';
+                const url = post.post_url || post.url || '';
+                
+                postDiv.innerHTML = `
+                    <h3 style="color: #ff6b6b; margin-bottom: 10px;">${title}</h3>
+                    ${image ? `<img src="${image}" alt="Post image" style="max-width: 300px; border-radius: 8px; margin: 10px 0;" onerror="this.style.display='none'">` : ''}
+                    ${content ? `<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; line-height: 1.6;">${content.substring(0, 300)}${content.length > 300 ? '...' : ''}</div>` : ''}
+                    <div style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                        ${date ? `<div>📅 ${date}</div>` : ''}
+                        ${postId ? `<div style="margin-top: 5px;">ID: ${postId}</div>` : ''}
+                    </div>
+                    ${postId ? `<div style="margin-top: 10px;"><button onclick="getProductsForPost('${postId}')">🛍️ View Products in This Post</button></div>` : ''}
+                    ${url ? `<div style="margin-top: 10px;"><a href="${url}" target="_blank" style="color: #ff6b6b; text-decoration: none;">View Post →</a></div>` : ''}
+                `;
+                
+                container.appendChild(postDiv);
+            });
+            
+            const details = document.createElement('details');
+            details.style.marginTop = '20px';
+            details.innerHTML = `
+                <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+            `;
+            container.appendChild(details);
+        }
+        
+        // Post Products
+        async function getPostProducts() {
+            const postId = document.getElementById('postId').value.trim();
+            if (!postId) {
+                alert('Please enter a Post ID');
+                return;
+            }
+            
+            showLoading('postProductsLoading');
+            document.getElementById('postProductsResults').innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/influencer-post-products', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({post_id: postId})
+                });
+                
+                const data = await response.json();
+                hideLoading('postProductsLoading');
+                
+                if (response.ok) {
+                    displayPostProducts(data, 'postProductsResults');
+                } else {
+                    showError('postProductsResults', data.error || 'Failed to load post products');
+                }
+            } catch (error) {
+                hideLoading('postProductsLoading');
+                showError('postProductsResults', 'Error: ' + error.message);
+            }
+        }
+        
+        function displayPostProducts(data, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            let products = [];
+            let productsData = data.products || data;
+            
+            if (productsData.data && productsData.data.products) {
+                products = productsData.data.products;
+            } else if (productsData.products) {
+                products = Array.isArray(productsData.products) ? productsData.products : [];
+            } else if (Array.isArray(productsData)) {
+                products = productsData;
+            } else if (productsData.data && Array.isArray(productsData.data)) {
+                products = productsData.data;
+            }
+            
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="error">⚠️ No products found. The API response structure may be different.</div>
+                    <details style="margin-top: 20px;">
+                        <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                        <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+                    </details>
+                `;
+                return;
+            }
+            
+            const summary = document.createElement('div');
+            summary.className = 'success';
+            summary.innerHTML = `✅ Found ${products.length} product${products.length !== 1 ? 's' : ''} in post: ${data.post_id || 'N/A'}`;
+            container.appendChild(summary);
+            
+            products.forEach(product => {
+                displayProduct(product, containerId);
+            });
+            
+            const details = document.createElement('details');
+            details.style.marginTop = '20px';
+            details.innerHTML = `
+                <summary style="cursor: pointer; color: #ff6b6b; font-weight: bold;">View Raw JSON Response</summary>
+                <div class="json-viewer" style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</div>
+            `;
+            container.appendChild(details);
+        }
+        
+        function getProductsForPost(postId) {
+            document.getElementById('postId').value = postId;
+            setTimeout(() => getPostProducts(), 100);
+        }
+    </script>
+</body>
+</html>
+
